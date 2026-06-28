@@ -11,15 +11,21 @@ const userRoutes = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const isProduction = process.env.NODE_ENV === 'production';
 
-// CORS has to allow credentials since we're using session cookies across
-// the React dev server (port 5173) and this API (port 4000).
+// CORS has to allow credentials since we're using session cookies. In dev
+// that's the Vite server on 5173; in production set FRONTEND_URL to your
+// deployed frontend's origin (e.g. https://recipeshare.onrender.com).
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
 }));
 
 app.use(express.json());
+
+// Render and most hosts sit behind a proxy; this tells express-session to
+// trust the proxy's "https" signal so secure cookies work correctly.
+app.set('trust proxy', 1);
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'recipeshare-dev-secret-change-in-production',
@@ -28,6 +34,8 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 7, // a week
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
   },
 }));
 
