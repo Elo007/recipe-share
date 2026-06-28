@@ -1,6 +1,6 @@
 // All frontend API calls go through here so the base URL and credentials
 // setting only need to live in one place.
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';;
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
